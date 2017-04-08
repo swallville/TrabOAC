@@ -3,7 +3,7 @@ Informações Gerais
 ==========================
 	1. Trabalho 1 da disciplina de OAC;
 	2. Familiarizar o aluno com o Simulador/Montador MARS;
-  3. Fazer manipulações em matrizes usando bitmap.
+  	3. Fazer manipulações em matrizes usando bitmap.
   
 Installation
 ---------------
