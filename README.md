@@ -17,6 +17,6 @@ Contributing
 2. Create a branch (`git checkout -b my_project`)
 3. Commit your changes (`git commit -am "Added new feature"`)
 4. Push to the branch (`git push origin my_project`)
-5. Open a [Pull Request] [1]
+5. Open a Pull Request.
 
-Copyright (c) 2016 Lukas Ferreira Machado
+Copyright (c) 2017 Lukas Ferreira Machado
