@@ -2,12 +2,19 @@
 #		Organização e Arquitetura de Computadores - Turma C 
 #			Trabalho 1 - Programação Assembler
 #
-# Nome:  Eduardo Said Calil Vilaça		Matrícula: 13/0154253 
-# Nome:  Lukas Ferreira Machado			Matrícula: 12/0127377
-# Nome:  Raphael Luis Souza de Queiroz 	        Matrícula: 13/0154989
+# Semestre: 1/2017.
 #
+# Professor: Marcelo Grandi Mandelli.
+#
+# Nome:  Lukas Ferreira Machado			Matrícula: 12/0127377.
+# Nome:  Eduardo Said Calil Vilaça		Matrícula: 13/0154253. 
+# Nome:  Raphael Luis Souza de Queiroz 	        Matrícula: 13/0154989.
+#
+#  		"Lately, I've been working to convince myself that
+#  		   everything is a computation." - Rudy Rucker.
 #-------------------------------------------------------------------------
 
+# descrição das variáveis utilizadas no programa
 .data
 
 image_name:   	    .asciiz "lenaeye.raw"   # nome da imagem a ser carregada
@@ -17,9 +24,26 @@ _bmpDim:	    .word   63		    # Dimensao da matriz do bitmap (64 x 64), indexada 
 buffer:		    .word   0		    # configuracao default do MARS
 size:		    .word   4096            # numero de pixels da imagem
 
-.text
+.text # início do programa main
 
 j inicializa
+
+  #-------------------------------------------------------------------------
+  # Função print_int: 
+  #  Printa um inteiro no console.
+  #
+  # Parametros:
+  #  x: Um inteiro.
+  #
+  # Assertivas de entrada:
+  #  type_of(x) == int.
+  #
+  # Asserivas de saida:
+  #  retorna um inteiro válida imprensa em console.
+  #
+  # Retorno:
+  #  A função printa no console um inteiro.
+  #-----------------------------------------------------------------------
 
 .macro print_int (%x)
 	li $v0, 1
@@ -27,10 +51,45 @@ j inicializa
 	syscall
 .end_macro
 
+  #-------------------------------------------------------------------------
+  # Função get_int: 
+  #  Printa um inteiro no console.
+  #
+  # Parametros:
+  #  void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  retorna um inteiro valido.
+  #
+  # Retorno:
+  #  A função retorna um inteiro.
+  #-----------------------------------------------------------------------
+
 .macro get_int
 	li $v0, 5             # Pega a opção inserida
 	syscall
 .end_macro
+
+  #-------------------------------------------------------------------------
+  # Função print_str: 
+  #  Printa uma string no console.
+  #
+  # Parametros:
+  #  str:  Uma string.
+  #
+  # Assertivas de entrada:
+  #  type_of(str) == string.
+  #
+  # Asserivas de saida:
+  #  retorna uma string válida imprensa em console.
+  #
+  #
+  # Retorno:
+  #  A função printa no console uma string.
+  #-----------------------------------------------------------------------
 
 .macro print_str (%str)
 	.data
@@ -41,13 +100,46 @@ j inicializa
 		syscall
 .end_macro
 
-# inicializa as variáveis globais
+  #-------------------------------------------------------------------------
+  # Função iniciliaza: 
+  #  Seta os parâmetros utilizados pela função load_image.
+  #
+  # Parametros:
+  #  void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  $a1 == address, $a2 == buffer, $a3 == size.
+  #
+  # Retorno:
+  #  A função seta os parâmetros utilizados pela função load_image.
+  #-----------------------------------------------------------------------
+  	
 inicializa:
 	lw $a1, address
   	la $a2, buffer
   	lw $a3, size
 
-# Mostra o menu de opções principal
+  #-------------------------------------------------------------------------
+  # Função mostra_menu: 
+  #  Seta um ponto nas coordenadas x e y as cores fornecidas em RGB.
+  #
+  # Parametros:
+  #  option: Um inteiro entre 1 e 6 definindo a escolha do menu pelo usuario.
+  #
+  # Assertivas de entrada:
+  #  1 <= option <= 6.
+  #
+  # Asserivas de saida:
+  #  Se option < 1 OU option > 6
+  #	return menu.	
+  #
+  # Retorno:
+  #  A função desenha o menu do programa no console.
+  #-----------------------------------------------------------------------
+  
 mostra_menu:
 	print_str("\n\n")
 	print_str("\tMenu Inicial")
@@ -75,7 +167,24 @@ mostra_menu:
 	
 	get_int
 
-# faz um switch-case com a opção inserida no menu principal
+  #-------------------------------------------------------------------------
+  # Função define_opcao: 
+  #  Faz um switch-case com a opção inserida no menu principal.
+  #
+  # Parametros:
+  #  Inteiro passado pelo usuario sendo a opção escolhida pelo mesmo.
+  #
+  # Assertivas de entrada:
+  #  type_of(option) == int. 1 <= option <= 6.
+  #
+  # Asserivas de saida:
+  #  Se option < 1 OU option > 6
+  #	return op_inv().	 
+  #
+  # Retorno:
+  #  A função chama o item do menu selecionado.
+  #-----------------------------------------------------------------------
+
 define_opcao:
 	beq $v0, 1, get_point
 	beq $v0, 2, draw_point
@@ -84,11 +193,46 @@ define_opcao:
 	beq $v0, 5, load_image
 	beq $v0, 6, exit
 	
+  #-------------------------------------------------------------------------
+  # Função op_inv: 
+  #  Printa na tela um string dizendo ao usuario que sua escolha foi invalida.
+  #
+  # Parametros:
+  #  void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  print_str("\n\nEscolha uma opcao valida!") != empty.
+  #
+  # Retorno:
+  #  Printa na tela um string dizendo ao usuario que sua escolha foi invalida.
+  #----------------------------------------------------------------------- 
+	
 op_inv:
 	print_str("\n\nEscolha uma opcao valida!")
 	j inicializa
 	
-# Pergunta o ponto e mostra ele no display
+  #-------------------------------------------------------------------------
+  # Função get_point: 
+  #  Retorna as cores fornecidas em RGB no ponto de coordenadas x e y.
+  #
+  # Parametros:
+  #  $x: posicao x do ponto desejado.
+  #  $y: posicao y do ponto desejado.
+  #
+  # Assertivas de entrada:
+  #  0 <= x && y <= 255.
+  #
+  # Asserivas de saida:
+  #  return != -1 (erro).	
+  #
+  # Retorno:
+  #  $val: valor da cor em RGB do ponto de coordenadas x e y, mostrando-o
+  # no console separado pelo seus canais RGB.
+  #-----------------------------------------------------------------------
+	
 get_point:
 	print_str("\n\nInsira a coordenada x do ponto desejado: ")
 	get_int
@@ -139,7 +283,26 @@ get_point:
 	addi $sp, $sp, 12       	# remove 3 items of the stack
 	
 	j inicializa
-
+	
+  #-------------------------------------------------------------------------
+  # Função get_pointfunc: 
+  #  Implementação da função get_point.
+  #
+  # Parametros:
+  #  $x: posicao x do ponto desejado.
+  #  $y: posicao y do ponto desejado.
+  #
+  # Assertivas de entrada:
+  #  0 <= x && y <= 255.
+  #
+  # Asserivas de saida:
+  #  return != -1 (erro).	
+  #
+  # Retorno:
+  #  $val: valor da cor em RGB do ponto de coordenadas x e y, mostrando-o
+  # no console separado pelo seus canais RGB.
+  #-----------------------------------------------------------------------
+	
 get_pointfunc:
 	lw $t8, address			# Get bitmap address
 	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
@@ -184,6 +347,27 @@ get_pointfunc:
 	
 	jr $ra			        # return to get_point
 	
+  #-------------------------------------------------------------------------
+  # Função draw_point: 
+  #  Seta um ponto nas coordenadas x e y as cores fornecidas em RGB.
+  #
+  # Parametros:
+  #  $x: posicao x do ponto desejado.
+  #  $y: posicao y do ponto desejado.
+  #  $val: valor da cor em RGB separado-se cada canal ao pedir ao usuario.
+  #
+  # Assertivas de entrada:
+  #  0 <= x && y <= 255.
+  #  val tem que ser um hexadecimal válido.
+  #
+  # Asserivas de saida:
+  #  return != -1 (erro).	
+  #
+  # Retorno:
+  #  A função desenha um ponto de cor definida pelo valor val na posição 
+  # denotada por x e y do Bitmap Display.
+  #-----------------------------------------------------------------------
+  
 draw_point:
 	print_str("\n\nInsira a coordenada x do ponto desejado: ")
 	get_int
@@ -231,16 +415,16 @@ draw_point:
 	bgtu $t6, 255, setrgb_exit	# Exit if B > 255
 	nop
 	
-	addi $sp, $sp, -20 	# stack receives 5 items
-	sw $t0, 16($sp)		# x
-	sw $t1, 12($sp)		# y
-	sw $t4, 8($sp)		# R
-	sw $t5, 4($sp)		# G
-	sw $t6, 0($sp)		# B
+	addi $sp, $sp, -20 		# stack receives 5 items
+	sw $t0, 16($sp)			# x
+	sw $t1, 12($sp)			# y
+	sw $t4, 8($sp)			# R
+	sw $t5, 4($sp)			# G
+	sw $t6, 0($sp)			# B
 	
-	jal draw_pointfunc	# draw_point's implementation
+	jal draw_pointfunc		# draw_point's implementation
 	
-	addi $sp, $sp, 20       # remove 5 items of the stack
+	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
 	print_str("\n")
 	print_str("Os componentes RGB foram colocadas no pixel!")
@@ -248,6 +432,27 @@ draw_point:
 
 	j inicializa
 	
+  #-------------------------------------------------------------------------
+  # Função draw_pointfunc: 
+  # Implementação da função draw_point.
+  #
+  # Parametros:
+  #  $x: posicao x do ponto desejado.
+  #  $y: posicao y do ponto desejado.
+  #  $val: valor da cor em RGB separado-se cada canal ao pedir ao usuario.
+  #
+  # Assertivas de entrada:
+  #  0 <= x && y <= 255.
+  #  val tem que ser um hexadecimal válido.
+  #
+  # Asserivas de saida:
+  #  return != -1 (erro).	
+  #
+  # Retorno:
+  #  A função desenha um ponto de cor definida pelo valor val na posição 
+  # denotada por x e y do Bitmap Display.
+  #-----------------------------------------------------------------------
+  	
 draw_pointfunc:
 	lw $t8, address			# Get bitmap address
 	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
@@ -284,6 +489,26 @@ draw_pointfunc:
 	sw $t9, ($t8)
 	
 	jr $ra 			      	# return to draw_point
+	
+  #-------------------------------------------------------------------------
+  # Função setpixel_exit: 
+  #  Função que trata caso de erro de input do usuario ao dar as coordenadas
+  # desejadas pelo mesmo.
+  #
+  # Parametros:
+  #  void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  print_str("Valor invalido! Escolha um numero positivo menor que 64!") 
+  #    != empty.	
+  #
+  # Retorno:
+  #  A função retorna uma string dizendo que o usuario inseriu um valor
+  # invalido para indexar a matriz e o retorna ao menu inicial.
+  #-----------------------------------------------------------------------	
 
 setpixel_exit:
 	print_str("\n")
@@ -293,6 +518,26 @@ setpixel_exit:
 	j inicializa		
 	nop
 
+  #-------------------------------------------------------------------------
+  # Função setrgb_exit: 
+  #  Função que trata caso de erro de input do usuario ao dar os parâmetros
+  # RGB da cor desejada.
+  #
+  # Parametros:
+  #  void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  print_str("Valor invalido! Escolha um numero positivo ate 255!")
+  #    != empty.	
+  #
+  # Retorno:
+  #  A função retorna uma string dizendo que o usuario inseriu um valor
+  # invalido para os parâmetros RGB da cor desejada.
+  #-----------------------------------------------------------------------	
+
 setrgb_exit:
 	print_str("\n")
 	print_str("Valor invalido! Escolha um numero positivo ate 255!")
@@ -300,6 +545,30 @@ setrgb_exit:
 	
 	j inicializa			
 	nop
+	
+  #-------------------------------------------------------------------------
+  # Função draw_empty_retangle: 
+  #  Desenha no Bitmap Display um retângulo de acordo com os limites e a
+  # cor fornecidos pelo usuário.
+  #
+  # Parametros:
+  #  $xi: coordenada x do primeiro coordenada do retângulo desejado.
+  #  $yi: coordenada y do primeiro coordenada do retângulo desejado.
+  #  $xf: coordenada x da segunda coordenada do retângulo desejado.
+  #  $yf: coordenada y da segunda coordenada do retângulo desejado.
+  #  $val: cor em RGB desejada no retângulo.
+  #
+  # Assertivas de entrada:
+  #  0 <= xi && yi && xf && yf <= 255.
+  #  val tem que ser um hexadecimal válido.
+  #
+  # Asserivas de saida:
+  #  return != -1 (erro).	
+  #
+  # Retorno:
+  #  A função desenha um retângulo de cor definida pelo valor val na posição 
+  # delimita por xi, yi, xf e yf no Bitmap Display.
+  #-------------------------------------------------------------------------
 
 draw_empty_retangle:
 	print_str("\n\nInsira a coordenada x do primeiro ponto desejado: ")
@@ -318,23 +587,57 @@ draw_empty_retangle:
 	get_int
 	move $t3, $v0
 	
+	print_str("\nInsira a cor desejada em hexadecimal: ")
+	get_int
+	move $t4, $v0
+	
 	j inicializa
+
+  #-------------------------------------------------------------------------
+  # Função convert_negative: 
+  #  Retorna o negativo da imagem atual do Bitmap Display.
+  #
+  # Parametros:
+  #  void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  return inverse(Bitmap_Display_Image).	
+  #
+  # Retorno:
+  #  A função retorna o negativo da imagem no Bitmap Display.
+  #------------------------------------------------------------------------- 
 	
 convert_negative:
 	j inicializa
 
   #-------------------------------------------------------------------------
-  # Funcao load_image: carrega uma imagem em formato RAW RGB para memoria
-  # Formato RAW: sequencia de pixels no formato RGB, 8 bits por componente
-  # de cor, R o byte mais significativo
+  # Função load_image: 
+  #  Carrega uma imagem em formato RAW RGB para memoria.
+  # Formato RAW: 
+  #  Sequência de pixels no formato RGB, 8 bits por componente de cor, 
+  # R o byte mais significativo.
   #
   # Parametros:
-  #  $a0: endereco do string ".asciiz" com o nome do arquivo com a imagem
-  #  $a1: endereco de memoria para onde a imagem sera carregada
-  #  $a2: endereco de uma palavra na memoria para utilizar como buffer
-  #  $a3: tamanho da imagem em pixels
+  #  $a0: endereco do string ".asciiz" com o nome do arquivo com a imagem.
+  #  $a1: endereco de memoria para onde a imagem sera carregada.
+  #  $a2: endereco de uma palavra na memoria para utilizar como buffer.
+  #  $a3: tamanho da imagem em pixels.
+  #
+  # Assertivas de entrada:
+  # type_of($a0) == string. $a1 precisa ser um endereco de memoria válido.
+  # $a2 precisa ser um endereco de memoria válido. type_of($a3) == int.
+  #
+  # Asserivas de saida:
+  #  return imagem no Bitmap Display.	
+  #
+  # Retorno:
+  #  A função retorna a imagem carregada no Bitmap Display.
   #
   # A função foi implementada ...
+  #-------------------------------------------------------------------------
   
 load_image:
   # carrega imagem --------------------
@@ -356,6 +659,24 @@ load_image:
   move $a1, $t9      # endereço do buffer 
   li   $a2, 3        # largura do buffer
   
+  #-------------------------------------------------------------------------
+  # Função loop: 
+  #  Função para gerar o loop para ler cada pixel da imagem aberta pela 
+  # função load_image.
+  #
+  # Parametros:
+  # $a3: número de pixels na imagem.
+  #
+  # Assertivas de entrada:
+  #  $a3 == _bmpDim * _bmpDim.
+  #
+  # Asserivas de saida:
+  #  $a3 == 0.
+  #
+  # Retorno:
+  #  void.
+  #-----------------------------------------------------------------------
+  
 loop:  
 
   beq  $a3, $zero, close
@@ -369,7 +690,23 @@ loop:
   
   j loop
   
-  # fecha o arquivo 
+  #-------------------------------------------------------------------------
+  # Função close: 
+  #  Fecha o arquivo apos a execução da função load_image.
+  #
+  # Parametros:
+  # void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  arquivo aberto foi fechado com sucesso.
+  #
+  # Retorno:
+  #  void.
+  #-----------------------------------------------------------------------
+
 close:  
   li   $v0, 16       # system call para fechamento do arquivo
   move $a0, $t6      # descritor do arquivo a ser fechado
@@ -377,9 +714,25 @@ close:
   	
   j inicializa
   
+  #-------------------------------------------------------------------------
+  # Função exit: 
+  #  Termina a execução do main do programa.
+  #
+  # Parametros:
+  # void.
+  #
+  # Assertivas de entrada:
+  #  void.
+  #
+  # Asserivas de saida:
+  #  programa executado com sucesso.
+  #
+  # Retorno:
+  #  void.
+  #-----------------------------------------------------------------------
+ 
 exit:
   print_str("\nVolte Sempre!")
   li $v0 10	     # encerra programa
   syscall
 # END OF PROGRAM 
-  
