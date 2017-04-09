@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------
 #		Organização e Arquitetura de Computadores - Turma C 
-#			Trabalho 1 - Programação Assembler
+#			Trabalho 1 - Assembly MIPS
 #
 # Semestre: 1/2017.
 #
@@ -85,7 +85,6 @@ j inicializa
   #
   # Asserivas de saida:
   #  retorna uma string válida imprensa em console.
-  #
   #
   # Retorno:
   #  A função printa no console uma string.
