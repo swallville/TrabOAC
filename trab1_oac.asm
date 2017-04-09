@@ -5,6 +5,8 @@
 # Nome:  Eduardo Said Calil Vilaça		Matrícula: 13/0154253 
 # Nome:  Lukas Ferreira Machado			Matrícula: 12/0127377
 # Nome:  Raphael Luis Souza de Queiroz 	        Matrícula: 13/0154989
+#
+#-------------------------------------------------------------------------
 
 .data
 
@@ -107,8 +109,45 @@ get_point:
 	nop
 	bgt $t1, $t7, setpixel_exit	# Exit if y > dimension
 	
+	
+	addi $sp, $sp, -8 		# stack receives 2 items
+	sw $t1, 4($sp)			# y
+	sw $t0, 0($sp)			# x
+	
+	jal get_pointfunc		# get_point's implementation
+	
+	lw $t2, 0($sp)  		# load R
+	lw $t3, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load B
+	
+	print_str("\n")
+	print_str("Os componentes RGB da coordenada são:")
+	print_str("\n")
+	
+	print_str("R: ")
+	print_int($t2)
+	print_str("\t")
+
+	print_str("G: ")
+	print_int($t3)
+	print_str("\t")
+
+	print_str("B: ")
+	print_int($t4)
+	print_str("\n")
+	
+	addi $sp, $sp, 12       	# remove 3 items of the stack
+	
+	j inicializa
+
+get_pointfunc:
 	lw $t8, address			# Get bitmap address
 	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
+	
+	lw $t0, 0($sp)  		# load x
+	lw $t1, 4($sp)  		# load y
+	
+	addi $sp, $sp, 8       		# remove 2 items of the stack
 	
 	srl $t8, $t8, 8			# set the address to receive the x position	
 	
@@ -138,23 +177,12 @@ get_point:
 	srl $t4, $t9, 16
 	andi $t4, $t4, 0x000000FF
 	
-	print_str("\n")
-	print_str("Os componentes RGB da coordenada são:")
-	print_str("\n")
+	addi $sp, $sp, -12 		# stack receives 3 items
+	sw $t4, 8($sp)			# B
+	sw $t3, 4($sp)			# G
+	sw $t2, 0($sp)			# R
 	
-	print_str("R: ")
-	print_int($t2)
-	print_str("\t")
-
-	print_str("G: ")
-	print_int($t3)
-	print_str("\t")
-
-	print_str("B: ")
-	print_int($t4)
-	print_str("\n")
-	
-	j inicializa
+	jr $ra			        # return to get_point
 	
 draw_point:
 	print_str("\n\nInsira a coordenada x do ponto desejado: ")
@@ -203,8 +231,32 @@ draw_point:
 	bgtu $t6, 255, setrgb_exit	# Exit if B > 255
 	nop
 	
+	addi $sp, $sp, -20 	# stack receives 5 items
+	sw $t0, 16($sp)		# x
+	sw $t1, 12($sp)		# y
+	sw $t4, 8($sp)		# R
+	sw $t5, 4($sp)		# G
+	sw $t6, 0($sp)		# B
+	
+	jal draw_pointfunc	# draw_point's implementation
+	
+	addi $sp, $sp, 20       # remove 5 items of the stack
+	
+	print_str("\n")
+	print_str("Os componentes RGB foram colocadas no pixel!")
+	print_str("\n")
+
+	j inicializa
+	
+draw_pointfunc:
 	lw $t8, address			# Get bitmap address
 	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
+	
+	lw $t6, 0($sp)  		# load B
+	lw $t5, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load R
+	lw $t1, 12($sp)  		# load y
+	lw $t0, 16($sp)  		# load x
 	
 	srl $t8, $t8, 8			# set the address to receive the x position	
 	
@@ -230,12 +282,8 @@ draw_point:
 	
 	# Put the colour data into the address
 	sw $t9, ($t8)
-		
-	print_str("\n")
-	print_str("Os componentes RGB foram colocadas no pixel!")
-	print_str("\n")
-
-	j inicializa
+	
+	jr $ra 			      	# return to draw_point
 
 setpixel_exit:
 	print_str("\n")
@@ -327,8 +375,7 @@ close:
   move $a0, $t6      # descritor do arquivo a ser fechado
   syscall            # fecha arquivo
   	
-  j exit
-  
+  j inicializa
   
 exit:
   print_str("\nVolte Sempre!")
