@@ -3,16 +3,17 @@
 #			Trabalho 1 - Programação Assembler
 #
 # Nome:  Eduardo Said Calil Vilaça		Matrícula: 13/0154253 
-# Nome:  Lukas 			        	Matrícula: 12/01
-# Nome:  Raphael 				Matrícula: 13/0154
+# Nome:  Lukas Ferreira Machado			Matrícula: 12/0127377
+# Nome:  Raphael Luis Souza de Queiroz 	        Matrícula: 13/0154989
 
 .data
 
 image_name:   	    .asciiz "lenaeye.raw"   # nome da imagem a ser carregada
-address: 	    .word   0x10040000	        # endereco do bitmap display na memoria	
-buffer:		    .word   0		                # configuracao default do MARS
-size:		    .word   4096		# numero de pixels da imagem
-
+address: 	    .word   0x10040000	    # endereco do bitmap display na memoria
+_mask: 	    	    .word   0x00000000	    # maskara para cor RGB	
+_bmpDim:	    .word   63		    # Dimensao da matriz do bitmap (64 x 64), indexada de 0 a 63
+buffer:		    .word   0		    # configuracao default do MARS
+size:		    .word   4096            # numero de pixels da imagem
 
 .text
 
@@ -46,7 +47,8 @@ inicializa:
 
 # Mostra o menu de opções principal
 mostra_menu:
-	print_str("Defina o número da opção desejada:")
+	print_str("\n\n")
+	print_str("\tMenu Inicial")
 	print_str("\n")
 
 	print_str("1- Obtém ponto")
@@ -65,7 +67,9 @@ mostra_menu:
 	print_str("\n")
 	
 	print_str("6- Encerra:")
-	print_str("\n")
+	print_str("\n\n")
+	
+	print_str("Defina o número da opção desejada: ")
 	
 	get_int
 
@@ -78,37 +82,68 @@ define_opcao:
 	beq $v0, 5, load_image
 	beq $v0, 6, exit
 	
+op_inv:
+	print_str("\n\nEscolha uma opcao valida!")
+	j inicializa
+	
 # Pergunta o ponto e mostra ele no display
 get_point:
-	print_str("Insira a coordenada x do ponto desejado: ")
+	print_str("\n\nInsira a coordenada x do ponto desejado: ")
 	get_int
 	move $t0, $v0
 	
-	print_str("Insira a coordenada y do ponto desejado: ")
+	print_str("\nInsira a coordenada y do ponto desejado: ")
 	get_int
 	move $t1, $v0
 	
-	## Pega componentes de X #
+	lw $t7, _bmpDim			# dimensao da matriz
 	
-	# Pega componente B de x
-	andi $t2, $t0, 0x000000FF
+	# Verifica limites da matriz
+	bltz $t0, setpixel_exit		# Exit if x < 0
+	nop
+	bltz $t1, setpixel_exit		# Exit if y < 0
+	nop
+	bgt $t0, $t7, setpixel_exit	# Exit if x > dimension
+	nop
+	bgt $t1, $t7, setpixel_exit	# Exit if y > dimension
 	
-	# Pega componente G de x
+	lw $t8, address			# Get bitmap address
+	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
+	
+	srl $t8, $t8, 8			# set the address to receive the x position	
+	
+	subu $t8, $t8, $t0		# add to the designated x position
+	
+	sll $t8, $t8, 8			# get back the address + x position
+	
+	sll $t1, $t1, 2			# multiply by 4 to get the word address
+	
+	addu $t8, $t8, $t1		# add to the designated y position
+	
+	# Get the colour data of the address
+	lw $t9, ($t8)
+	
+	## Pega componentes do ponto #
+	
+	# Pega componente R
+	andi $t2, $t9, 0x000000FF
+	
+	# Pega componente G
 
-	srl $t3, $t0, 8
+	srl $t3, $t9, 8
 	andi $t3, $t3, 0x000000FF
 	
-	# Pega componente R de x
+	# Pega componente B
 	
-	srl $t4, $t0, 16
+	srl $t4, $t9, 16
 	andi $t4, $t4, 0x000000FF
 	
 	print_str("\n")
-	print_str("Os componentes RGB da coordenada x são:")
+	print_str("Os componentes RGB da coordenada são:")
 	print_str("\n")
 	
 	print_str("R: ")
-	print_int($t4)
+	print_int($t2)
 	print_str("\t")
 
 	print_str("G: ")
@@ -116,82 +151,129 @@ get_point:
 	print_str("\t")
 
 	print_str("B: ")
-	print_int($t2)
-	print_str("\n")
-	
-	## Pega componentes de Y #
-	
-	# Pega componente B de y
-	andi $t2, $t1, 0x000000FF
-	
-	# Pega componente G de y
-
-	srl $t3, $t1, 8
-	andi $t3, $t3, 0x000000FF
-	
-	# Pega componente R de y
-	
-	srl $t4, $t1, 16
-	andi $t4, $t4, 0x000000FF
-	
-	print_str("\n")
-	print_str("Os componentes RGB da coordenada y são:")
-	print_str("\n")
-	
-	print_str("R: ")
 	print_int($t4)
-	print_str("\t")
-
-	print_str("G: ")
-	print_int($t3)
-	print_str("\t")
-
-	print_str("B: ")
-	print_int($t2)
-	print_str("\t")
+	print_str("\n")
 	
-	j exit
+	j inicializa
 	
 draw_point:
-	print_str("Insira a coordenada x do ponto desejado: ")
+	print_str("\n\nInsira a coordenada x do ponto desejado: ")
 	get_int
 	move $t0, $v0
 	
-	print_str("Insira a coordenada y do ponto desejado: ")
+	print_str("\nInsira a coordenada y do ponto desejado: ")
 	get_int
 	move $t1, $v0
 	
-	print_str("Insira a cor do ponto: ")
+	print_str("\nInsira o componente R da cor desejada do ponto: ")
 	get_int
-	move $t2, $v0
+	move $t4, $v0
+	
+	print_str("\nInsira o componente G da cor desejada do ponto: ")
+	get_int
+	move $t5, $v0
+	
+	print_str("\nInsira o componente B da cor desejada do ponto: ")
+	get_int
+	move $t6, $v0
+	
+	lw $t7, _bmpDim			# dimensao da matriz
+	
+	# Verifica limites da matriz
+	bltz $t0, setpixel_exit		# Exit if x < 0
+	nop
+	bltz $t1, setpixel_exit		# Exit if y < 0
+	nop
+	bgt $t0, $t7, setpixel_exit	# Exit if x > dimension
+	nop
+	bgt $t1, $t7, setpixel_exit	# Exit if y > dimension
+	
+	# Verifica limites do canal RGB
+	bltz $t4, setrgb_exit		# Exit if R < 0
+	nop
+	bltz $t5, setrgb_exit		# Exit if G < 0
+	nop
+	bltz $t6, setrgb_exit		# Exit if B < 0
+	nop
+	
+	bgtu $t4, 255, setrgb_exit	# Exit if R > 255
+	nop
+	bgtu $t5, 255, setrgb_exit	# Exit if G > 255
+	nop
+	bgtu $t6, 255, setrgb_exit	# Exit if B > 255
+	nop
+	
+	lw $t8, address			# Get bitmap address
+	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
+	
+	srl $t8, $t8, 8			# set the address to receive the x position	
+	
+	subu $t8, $t8, $t0		# add to the designated x position
+	
+	sll $t8, $t8, 8			# get back the address + x position
+	
+	sll $t1, $t1, 2			# multiply by 4 to get the word address
+	
+	addu $t8, $t8, $t1		# add to the designated y position
+		
+	# Pega componente R 
+	lw $t9, _mask
+	or $t9, $t9, $t4
+	
+	# Pega componente G
+	sll $t4, $t5, 8
+	or $t9, $t9, $t4
+	
+	# Pega componente B
+	sll $t4, $t6, 16
+	or $t9, $t9, $t4
+	
+	# Put the colour data into the address
+	sw $t9, ($t8)
+		
+	print_str("\n")
+	print_str("Os componentes RGB foram colocadas no pixel!")
+	print_str("\n")
 
-	j exit
+	j inicializa
+
+setpixel_exit:
+	print_str("\n")
+	print_str("Valor invalido! Escolha um numero positivo menor que 64!")
+	print_str("\n")
 	
+	j inicializa		
+	nop
+
+setrgb_exit:
+	print_str("\n")
+	print_str("Valor invalido! Escolha um numero positivo ate 255!")
+	print_str("\n")
+	
+	j inicializa			
+	nop
+
 draw_empty_retangle:
-	print_str("Insira a coordenada x do primeiro ponto desejado: ")
+	print_str("\n\nInsira a coordenada x do primeiro ponto desejado: ")
 	get_int
 	move $t0, $v0
 	
-	print_str("Insira a coordenada y do primeiro ponto desejado: ")
+	print_str("\nInsira a coordenada y do primeiro ponto desejado: ")
 	get_int
 	move $t1, $v0
 	
-	print_str("Insira a coordenada x do segundo ponto desejado: ")
+	print_str("\nInsira a coordenada x do segundo ponto desejado: ")
 	get_int
 	move $t2, $v0
 	
-	print_str("Insira a coordenada y do segundo ponto desejado: ")
+	print_str("\nInsira a coordenada y do segundo ponto desejado: ")
 	get_int
 	move $t3, $v0
 	
-	print_str("Insira a cor do ponto: ")
-	get_int
-	move $t4, $v0
-
-	j exit
+	j inicializa
 	
 convert_negative:
-	j exit
+	j inicializa
 
   #-------------------------------------------------------------------------
   # Funcao load_image: carrega uma imagem em formato RAW RGB para memoria
@@ -248,8 +330,9 @@ close:
   j exit
   
   
-  exit:
-  	  li $v0 10		# encerra programa
-  	  syscall
-  
+exit:
+  print_str("\nVolte Sempre!")
+  li $v0 10	     # encerra programa
+  syscall
+# END OF PROGRAM 
   
