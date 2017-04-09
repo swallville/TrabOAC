@@ -376,15 +376,15 @@ draw_point:
 	get_int
 	move $t1, $v0
 	
-	print_str("\nInsira o componente R da cor desejada do ponto: ")
+	print_str("\nInsira o nivel de Vermelho (R) desejado [0-255]: ")
 	get_int
 	move $t4, $v0
 	
-	print_str("\nInsira o componente G da cor desejada do ponto: ")
+	print_str("\nInsira o nivel de Verde (G) desejado [0-255]: ")
 	get_int
 	move $t5, $v0
 	
-	print_str("\nInsira o componente B da cor desejada do ponto: ")
+	print_str("\nInsira o nivel de Azul (B) desejado [0-255]: ")
 	get_int
 	move $t6, $v0
 	
@@ -590,13 +590,48 @@ draw_empty_retangle:
 	get_int
 	move $t4, $v0
 	
-	print_str("\nInsira o nivel de Verde(R) desejado [0-255]: ")
+	print_str("\nInsira o nivel de Verde(G) desejado [0-255]: ")
 	get_int
 	move $t5, $v0
 	
-	print_str("\nInsira o nivel de Azul(R) desejado [0-255]: ")
+	print_str("\nInsira o nivel de Azul(B) desejado [0-255]: ")
 	get_int
 	move $t6, $v0
+	
+	lw $t7, _bmpDim			# dimensao da matriz
+	
+	# Verifica limites da matriz
+	bltz $t0, setpixel_exit		# Exit if x1 < 0
+	nop
+	bltz $t1, setpixel_exit		# Exit if y1 < 0
+	nop
+	bltz $t2, setpixel_exit		# Exit if x2 < 0
+	nop
+	bltz $t3, setpixel_exit		# Exit if y2 < 0
+	nop
+	
+	bgt $t0, $t7, setpixel_exit	# Exit if x1 > dimension
+	nop
+	bgt $t1, $t7, setpixel_exit	# Exit if y1 > dimension
+	nop
+	bgt $t2, $t7, setpixel_exit	# Exit if x2 > dimension
+	nop
+	bgt $t3, $t7, setpixel_exit	# Exit if y2 > dimension
+	
+	# Verifica limites do canal RGB
+	bltz $t4, setrgb_exit		# Exit if R < 0
+	nop
+	bltz $t5, setrgb_exit		# Exit if G < 0
+	nop
+	bltz $t6, setrgb_exit		# Exit if B < 0
+	nop
+	
+	bgtu $t4, 255, setrgb_exit	# Exit if R > 255
+	nop
+	bgtu $t5, 255, setrgb_exit	# Exit if G > 255
+	nop
+	bgtu $t6, 255, setrgb_exit	# Exit if B > 255
+	nop
 	
 	addu $s0, $t0, $zero		#auxiliar variable for saving initial X position (aux = xi)
 	addu $s1, $t1, $zero		#auxiliar varaible for saving initial Y position (aux2 = yi)
