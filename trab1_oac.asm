@@ -586,11 +586,124 @@ draw_empty_retangle:
 	get_int
 	move $t3, $v0
 	
-	print_str("\nInsira a cor desejada em hexadecimal: ")
+	print_str("\nInsira o nivel de Vermelho (R) desejado [0-255]: ")
 	get_int
 	move $t4, $v0
 	
+	print_str("\nInsira o nivel de Verde(R) desejado [0-255]: ")
+	get_int
+	move $t5, $v0
+	
+	print_str("\nInsira o nivel de Azul(R) desejado [0-255]: ")
+	get_int
+	move $t6, $v0
+	
+	addu $s0, $t0, $zero		#auxiliar variable for saving initial X position (aux = xi)
+	addu $s1, $t1, $zero		#auxiliar varaible for saving initial Y position (aux2 = yi)
+	
+	addi $sp, $sp, -20 		# stack receives 5 items
+	sw $t0, 16($sp)			# x
+	sw $t1, 12($sp)			# y
+	sw $t4, 8($sp)			# R
+	sw $t5, 4($sp)			# G
+	sw $t6, 0($sp)			# B
+	
+	jal draw_pointfunc		# draw_point's implementation
+	
+	lw $t6, 0($sp)  		# load B
+	lw $t5, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load R
+	lw $t1, 12($sp)  		# load y
+	lw $t0, 16($sp)  		# load x
+	
+	addi $sp, $sp, 20       	# remove 5 items of the stack
+draw1_y:	#loop for drawing lower side of the empty rectangle
+	addi $t1, $t1, 1		#increment position Y for drawing next point (y = y + 1)
+	
+	addi $sp, $sp, -20 		# stack receives 5 items
+	sw $t0, 16($sp)			# x
+	sw $t1, 12($sp)			# y
+	sw $t4, 8($sp)			# R
+	sw $t5, 4($sp)			# G
+	sw $t6, 0($sp)			# B
+	
+	jal draw_pointfunc		# draw_point's implementation
+	
+	lw $t6, 0($sp)  		# load B
+	lw $t5, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load R
+	lw $t1, 12($sp)  		# load y
+	lw $t0, 16($sp)  		# load x
+	
+	addi $sp, $sp, 20       	# remove 5 items of the stack
+	
+	bne $t1, $t3, draw1_y		#condition for exit the loop (y = yf)
+draw1_x:	#loop for drawing right side of the empty rectangle
+	addi $t0, $t0, 1		#increment position X for drawing next point (x = x + 1)
+	
+	addi $sp, $sp, -20 		# stack receives 5 items
+	sw $t0, 16($sp)			# x
+	sw $t1, 12($sp)			# y
+	sw $t4, 8($sp)			# R
+	sw $t5, 4($sp)			# G
+	sw $t6, 0($sp)			# B
+	
+	jal draw_pointfunc		# draw_point's implementation
+	
+	lw $t6, 0($sp)  		# load B
+	lw $t5, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load R
+	lw $t1, 12($sp)  		# load y
+	lw $t0, 16($sp)  		# load x
+	
+	addi $sp, $sp, 20       	# remove 5 items of the stack
+	
+	bne $t0, $t2, draw1_x		#condition for exit the loop (x = xf)
+draw2_y:	#loop for drawing upper side of the empty rectangle
+	addi $t1, $t1, -1		#as y = yf, decrement position Y for drawing previous point (y = y - 1)
+	
+	addi $sp, $sp, -20 		# stack receives 5 items
+	sw $t0, 16($sp)			# x
+	sw $t1, 12($sp)			# y
+	sw $t4, 8($sp)			# R
+	sw $t5, 4($sp)			# G
+	sw $t6, 0($sp)			# B
+	
+	jal draw_pointfunc		# draw_point's implementation
+	
+	lw $t6, 0($sp)  		# load B
+	lw $t5, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load R
+	lw $t1, 12($sp)  		# load y
+	lw $t0, 16($sp)  		# load x
+	
+	addi $sp, $sp, 20       	# remove 5 items of the stack
+	
+	bne $t1, $s1, draw2_y		#condition for exit the loop (y = yi)
+draw2_x:	#loop for drawing left side of the empty rectangle
+	addi $t0, $t0, -1		#as x = xf, decrement position X for drawing previous point (x = x - 1)
+	
+	addi $sp, $sp, -20 		# stack receives 5 items
+	sw $t0, 16($sp)			# x
+	sw $t1, 12($sp)			# y
+	sw $t4, 8($sp)			# R
+	sw $t5, 4($sp)			# G
+	sw $t6, 0($sp)			# B
+	
+	jal draw_pointfunc		# draw_point's implementation
+	
+	lw $t6, 0($sp)  		# load B
+	lw $t5, 4($sp)  		# load G
+	lw $t4, 8($sp)  		# load R
+	lw $t1, 12($sp)  		# load y
+	lw $t0, 16($sp)  		# load x
+	
+	addi $sp, $sp, 20       	# remove 5 items of the stack
+	
+	bne $t0, $s0, draw2_x		#condition for exit the loop (x = xi)
+	
 	j inicializa
+
 
   #-------------------------------------------------------------------------
   # Função convert_negative: 
