@@ -259,16 +259,16 @@ get_point:
 	
 	jal get_pointfunc		# get_point's implementation
 	
-	lw $t2, 0($sp)  		# load R
+	lw $t2, 0($sp)  		# load B
 	lw $t3, 4($sp)  		# load G
-	lw $t4, 8($sp)  		# load B
+	lw $t4, 8($sp)  		# load R
 	
 	print_str("\n")
 	print_str("Os componentes RGB da coordenada são:")
 	print_str("\n")
 	
 	print_str("R: ")
-	print_int($t2)
+	print_int($t4)
 	print_str("\t")
 
 	print_str("G: ")
@@ -276,7 +276,7 @@ get_point:
 	print_str("\t")
 
 	print_str("B: ")
-	print_int($t4)
+	print_int($t2)
 	print_str("\n")
 	
 	addi $sp, $sp, 12       	# remove 3 items of the stack
@@ -326,7 +326,7 @@ get_pointfunc:
 	
 	## Pega componentes do ponto #
 	
-	# Pega componente R
+	# Pega componente B
 	andi $t2, $t9, 0x000000FF
 	
 	# Pega componente G
@@ -334,15 +334,15 @@ get_pointfunc:
 	srl $t3, $t9, 8
 	andi $t3, $t3, 0x000000FF
 	
-	# Pega componente B
+	# Pega componente R
 	
 	srl $t4, $t9, 16
 	andi $t4, $t4, 0x000000FF
 	
 	addi $sp, $sp, -12 		# stack receives 3 items
-	sw $t4, 8($sp)			# B
+	sw $t4, 8($sp)			# R
 	sw $t3, 4($sp)			# G
-	sw $t2, 0($sp)			# R
+	sw $t2, 0($sp)			# B
 	
 	jr $ra			        # return to get_point
 	
@@ -472,17 +472,17 @@ draw_pointfunc:
 	
 	addu $t8, $t8, $t1		# add to the designated y position
 		
-	# Pega componente R 
+	# Pega componente B 
 	lw $t9, _mask
-	or $t9, $t9, $t4
+	or $t9, $t9, $t6
 	
 	# Pega componente G
-	sll $t4, $t5, 8
-	or $t9, $t9, $t4
+	sll $t6, $t5, 8
+	or $t9, $t9, $t6
 	
-	# Pega componente B
-	sll $t4, $t6, 16
-	or $t9, $t9, $t4
+	# Pega componente R
+	sll $t6, $t4, 16
+	or $t9, $t9, $t6
 	
 	# Put the colour data into the address
 	sw $t9, ($t8)
