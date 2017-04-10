@@ -653,8 +653,15 @@ draw_empty_retangle:
 	
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 draw1_y:	#loop for drawing lower side of the empty rectangle
+	beq $t1, $t3, draw1_x		#condition for exit the loop (y = yf)
+	
+	slt $s4, $t3, $t1
+	bne $s4, $zero, decrement1_y
 	addi $t1, $t1, 1		#increment position Y for drawing next point (y = y + 1)
-	
+	j draw_1
+decrement1_y:
+	addi $t1, $t1, -1
+draw_1:		
 	addi $sp, $sp, -20 		# stack receives 5 items
 	sw $t0, 16($sp)			# x
 	sw $t1, 12($sp)			# y
@@ -672,10 +679,17 @@ draw1_y:	#loop for drawing lower side of the empty rectangle
 	
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
-	bne $t1, $t3, draw1_y		#condition for exit the loop (y = yf)
+	j draw1_y
 draw1_x:	#loop for drawing right side of the empty rectangle
+	beq $t0, $t2, draw2_y		#condition for exit the loop (x = xf)
+	
+	slt $s4, $t2, $t0
+	bne $s4, $zero, decrement1_x
 	addi $t0, $t0, 1		#increment position X for drawing next point (x = x + 1)
-	
+	j draw_2
+decrement1_x:
+	addi $t0, $t0, -1
+draw_2:
 	addi $sp, $sp, -20 		# stack receives 5 items
 	sw $t0, 16($sp)			# x
 	sw $t1, 12($sp)			# y
@@ -693,10 +707,17 @@ draw1_x:	#loop for drawing right side of the empty rectangle
 	
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
-	bne $t0, $t2, draw1_x		#condition for exit the loop (x = xf)
+	j draw1_x
 draw2_y:	#loop for drawing upper side of the empty rectangle
+	beq $t1, $s1, draw2_x		#condition for exit the loop (y = yi)
+	
+	slt $s4, $t3, $s1
+	bne $s4, $zero, increment2_y
 	addi $t1, $t1, -1		#as y = yf, decrement position Y for drawing previous point (y = y - 1)
-	
+	j draw_3
+increment2_y:
+	addi $t1, $t1, 1
+draw_3:
 	addi $sp, $sp, -20 		# stack receives 5 items
 	sw $t0, 16($sp)			# x
 	sw $t1, 12($sp)			# y
@@ -714,10 +735,16 @@ draw2_y:	#loop for drawing upper side of the empty rectangle
 	
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
-	bne $t1, $s1, draw2_y		#condition for exit the loop (y = yi)
+	j draw2_y
 draw2_x:	#loop for drawing left side of the empty rectangle
+	beq $t0, $s0, inicializa		#condition for exit the loop (x = xi)
+	slt $s4, $t2, $s0
+	bne $s4, $zero, increment2_x
 	addi $t0, $t0, -1		#as x = xf, decrement position X for drawing previous point (x = x - 1)
-	
+	j draw_4
+increment2_x:
+	addi $t0, $t0, 1
+draw_4:
 	addi $sp, $sp, -20 		# stack receives 5 items
 	sw $t0, 16($sp)			# x
 	sw $t1, 12($sp)			# y
@@ -735,9 +762,7 @@ draw2_x:	#loop for drawing left side of the empty rectangle
 	
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
-	bne $t0, $s0, draw2_x		#condition for exit the loop (x = xi)
-	
-	j inicializa
+	j draw2_x
 
 
   #-------------------------------------------------------------------------
