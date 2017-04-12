@@ -23,6 +23,7 @@ _mask: 	    	    .word   0x00000000	    # maskara para cor RGB
 _bmpDim:	    .word   63		    # Dimensao da matriz do bitmap (64 x 64), indexada de 0 a 63
 buffer:		    .word   0		    # configuracao default do MARS
 size:		    .word   4096            # numero de pixels da imagem
+answer:		    .space  256
 
 .text # início do programa main
 
@@ -281,7 +282,21 @@ get_point:
 	
 	addi $sp, $sp, 12       	# remove 3 items of the stack
 	
-	j inicializa
+	print_str("\n")
+	print_str("Deseja continuar? [y/n]")
+	
+	la  $a0, answer
+    	li  $a1, 3
+    	li  $v0, 8
+    	syscall
+
+    	lb  $t4, 0($a0)
+
+    	beq $t4, 'y', inicializa
+    	beq $t4, 'Y', inicializa
+    	beq $t4, 'n', exit
+    	beq $t4, 'N', exit
+	
 	
   #-------------------------------------------------------------------------
   # Função get_pointfunc: 
