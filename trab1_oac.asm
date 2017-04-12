@@ -668,6 +668,10 @@ draw_empty_retangle:
 	lw $t1, 12($sp)  		# load y
 	lw $t0, 16($sp)  		# load x
 	
+	beq $t1, $t3, second_verification
+second_verification:
+	beq $t0, $t2, point_draw
+	
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 draw1_y:	#loop for drawing lower side of the empty rectangle
 	beq $t1, $t3, draw1_x		#condition for exit the loop (y = yf)
@@ -780,6 +784,11 @@ draw_4:
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
 	j draw2_x
+
+point_draw:
+	jal draw_pointfunc
+	
+	j inicializa
 
 
   #-------------------------------------------------------------------------
