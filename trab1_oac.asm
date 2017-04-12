@@ -121,6 +121,8 @@ inicializa:
 	lw $a1, address
   	la $a2, buffer
   	lw $a3, size
+  	li $s7, 0   # Flag booleana para saber se a imagem deve ser negativada ou não
+  		    # 0 = carrega normal 1 = carrega o negativo dela
 
   #-------------------------------------------------------------------------
   # Função mostra_menu: 
@@ -189,7 +191,7 @@ define_opcao:
 	beq $v0, 1, get_point
 	beq $v0, 2, draw_point
 	beq $v0, 3, draw_empty_retangle
-	beq $v0, 4, convert_negative
+	beq $v0, 4, load_negative_image
 	beq $v0, 5, load_image
 	beq $v0, 6, exit
 	
@@ -826,6 +828,10 @@ convert_negative:
   # A função foi implementada ...
   #-------------------------------------------------------------------------
   
+load_negative_image:
+	li $s7, 1 # s7 é uma flag booleana para avisar que a imagem
+	          # deve ser carregada em seu modo negativo 	
+  
 load_image:
   # carrega imagem --------------------
 
@@ -845,6 +851,10 @@ load_image:
   move $a0, $t6      # descritor do arquivo 
   move $a1, $t9      # endereço do buffer 
   li   $a2, 3        # largura do buffer
+  
+  # Verifica se a imagem será representada na forma original ou negativada
+  beq $s7, 1, loop_negative
+  j loop
   
   #-------------------------------------------------------------------------
   # Função loop: 
@@ -867,15 +877,57 @@ load_image:
 loop:  
 
   beq  $a3, $zero, close
-  
   li   $v0, 14       # system call para leitura de arquivo
   syscall            # lê o arquivo
   lw   $t0, 0($a1)   # lê pixel do buffer	
   sw   $t0, 0($t8)   # escreve pixel no display
   addi $t8, $t8, 4   # próximo pixel
-  addi $a3, $a3, -1  # decrementa countador
+  addi $a3, $a3, -1  # decrementa contador
   
   j loop
+ 
+ 
+ modify_rgb:
+ 	## Pega componentes do ponto e negativa #
+ 	li $t4, 255
+	
+	# Pega componente B
+	andi $t1, $t0, 0x000000FF
+	sub  $t1, $t4, $t1
+	
+	# Pega componente G
+
+	srl $t2, $t0, 8
+	andi $t2, $t2, 0x000000FF
+	sub  $t2, $t4, $t2
+	sll  $t2, $t2, 8
+	
+	# Pega componente R
+	
+	srl $t3, $t0, 16
+	andi $t3, $t3, 0x000000FF
+	sub  $t3, $t4, $t3
+	andi $t3, $t3, 0x0000FF00
+	sll  $t3, $t3, 8
+ 	
+ 	add $t0, $t1, $t2
+ 	add $t0, $t0, $t3
+ 	
+ 	jr $ra
+ 
+loop_negative:
+ 	beq  $a3, $zero, close
+  	li   $v0, 14       # system call para leitura de arquivo
+  	syscall            # lê o arquivo
+  	lw   $t0, 0($a1)   # lê pixel do buffer
+  
+	jal  modify_rgb
+  		
+  	sw   $t0, 0($t8)   # escreve pixel no display
+  	addi $t8, $t8, 4   # próximo pixel
+  	addi $a3, $a3, -1  # decrementa contador
+  
+  	j loop_negative
   
   #-------------------------------------------------------------------------
   # Função close: 
