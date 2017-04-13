@@ -121,8 +121,6 @@ inicializa:
 	lw $a1, address
   	la $a2, buffer
   	lw $a3, size
-  	li $s7, 0   # Flag booleana para saber se a imagem deve ser negativada ou não
-  		    # 0 = carrega normal 1 = carrega o negativo dela
 
   #-------------------------------------------------------------------------
   # Função mostra_menu: 
@@ -191,7 +189,7 @@ define_opcao:
 	beq $v0, 1, get_point
 	beq $v0, 2, draw_point
 	beq $v0, 3, draw_empty_retangle
-	beq $v0, 4, load_negative_image
+	beq $v0, 4, convert_negative
 	beq $v0, 5, load_image
 	beq $v0, 6, exit
 	
@@ -404,7 +402,7 @@ draw_point:
 	print_str("\nInsira o nivel de Azul (B) desejado [0-255]: ")
 	get_int
 	move $t6, $v0
-	
+
 	lw $t7, _bmpDim			# dimensao da matriz
 	
 	# Verifica limites da matriz
@@ -807,11 +805,66 @@ point_draw:
   # Retorno:
   #  A função retorna o negativo da imagem no Bitmap Display.
   #------------------------------------------------------------------------- 
-	
+  
 convert_negative:
-	j inicializa
+	li $s6, 0                       # Variavel para saber onde esta o X
+	li $s7, 0                       # Variavel para saber onde esta o Y
+	lw $t7, _bmpDim                 # Tamanho da Matriz
+	addi $t7, $t7, 1
+	
+	lw $t8, address			# Get bitmap address
+	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
 
-  #-------------------------------------------------------------------------
+loop_negative:
+	jal  modify_rgb
+  		
+  	sw   $t0, ($t8)    # escreve o novo pixel no display
+  	addi $t8, $t8, 4   # próximo pixel
+  	addi $s7, $s7, 1   # Incrementa o numero de colunas percorridas
+  	
+  	bne $s7, $t7, loop_negative   # Se o Y não chegou ao fim, continua
+  	jal line_up                   # Caso contrario, vai para a linha acima
+  	li  $s7, 0                    # O Y volta a posicao inicial
+	j loop_negative
+
+modify_rgb:
+ 	## Pega componentes do ponto e negativa #
+ 	lw $t0, 0($t8)
+ 	li $t4, 255
+	
+	# Pega componente B
+	andi $t1, $t0, 0x000000FF
+	sub  $t1, $t4, $t1
+	
+	# Pega componente G
+
+	srl $t2, $t0, 8
+	andi $t2, $t2, 0x000000FF
+	sub  $t2, $t4, $t2
+	sll  $t2, $t2, 8
+	
+	# Pega componente R
+	
+	srl $t3, $t0, 16
+	andi $t3, $t3, 0x000000FF
+	sub  $t3, $t4, $t3
+	sll  $t3, $t3, 16
+ 	
+ 	# Combina o novo RGB
+ 	add $t0, $t1, $t2
+ 	add $t0, $t0, $t3
+ 	
+ 	jr $ra
+ 	
+line_up:
+	sll $s7, $s7, 3      # Multiplica por 8
+	sub $t8, $t8, $s7    # Coloca o endereço na linha acima
+	addi $s6, $s6, 1     # Incrementa o numero de linhas percorridas
+	beq $s6, $t7, inicializa # Caso tenha chegado ao final, vai para o menu
+	jr $ra     # Caso contrario, volta para o loop
+
+
+#-------------------------------------------------------------------------
   # Função load_image: 
   #  Carrega uma imagem em formato RAW RGB para memoria.
   # Formato RAW: 
@@ -837,10 +890,6 @@ convert_negative:
   # A função foi implementada ...
   #-------------------------------------------------------------------------
   
-load_negative_image:
-	li $s7, 1 # s7 é uma flag booleana para avisar que a imagem
-	          # deve ser carregada em seu modo negativo 	
-  
 load_image:
   # carrega imagem --------------------
 
@@ -860,9 +909,7 @@ load_image:
   move $a0, $t6      # descritor do arquivo 
   move $a1, $t9      # endereço do buffer 
   li   $a2, 3        # largura do buffer
-  
-  # Verifica se a imagem será representada na forma original ou negativada
-  beq $s7, 1, loop_negative
+
   j loop
   
   #-------------------------------------------------------------------------
@@ -894,49 +941,6 @@ loop:
   addi $a3, $a3, -1  # decrementa contador
   
   j loop
- 
- 
- modify_rgb:
- 	## Pega componentes do ponto e negativa #
- 	li $t4, 255
-	
-	# Pega componente B
-	andi $t1, $t0, 0x000000FF
-	sub  $t1, $t4, $t1
-	
-	# Pega componente G
-
-	srl $t2, $t0, 8
-	andi $t2, $t2, 0x000000FF
-	sub  $t2, $t4, $t2
-	sll  $t2, $t2, 8
-	
-	# Pega componente R
-	
-	srl $t3, $t0, 16
-	andi $t3, $t3, 0x000000FF
-	sub  $t3, $t4, $t3
-	andi $t3, $t3, 0x0000FF00
-	sll  $t3, $t3, 8
- 	
- 	add $t0, $t1, $t2
- 	add $t0, $t0, $t3
- 	
- 	jr $ra
- 
-loop_negative:
- 	beq  $a3, $zero, close
-  	li   $v0, 14       # system call para leitura de arquivo
-  	syscall            # lê o arquivo
-  	lw   $t0, 0($a1)   # lê pixel do buffer
-  
-	jal  modify_rgb
-  		
-  	sw   $t0, 0($t8)   # escreve pixel no display
-  	addi $t8, $t8, 4   # próximo pixel
-  	addi $a3, $a3, -1  # decrementa contador
-  
-  	j loop_negative
   
   #-------------------------------------------------------------------------
   # Função close: 
