@@ -23,7 +23,7 @@ _mask: 	    	    .word   0x00000000	    # maskara para cor RGB
 _bmpDim:	    .word   63		    # Dimensao da matriz do bitmap (64 x 64), indexada de 0 a 63
 buffer:		    .word   0		    # configuracao default do MARS
 size:		    .word   4096            # numero de pixels da imagem
-answer:		    .space  256
+answer:		    .space  256		    
 
 .text # início do programa main
 
@@ -755,15 +755,16 @@ draw_3:
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
 	j draw2_y
-draw2_x:	#loop for drawing left side of the empty rectangle
-	beq $t0, $s0, inicializa		#condition for exit the loop (x = xi)
+draw2_x:				#loop for drawing left side of the empty rectangle
+	beq $t0, $s0, inicializa	#condition for exit the loop (x = xi)
 	slt $s4, $t2, $s0
 	bne $s4, $zero, increment2_x
 	addi $t0, $t0, -1		#as x = xf, decrement position X for drawing previous point (x = x - 1)
 	j draw_4
 increment2_x:
 	addi $t0, $t0, 1
-draw_4:
+
+draw_4: # loop for the last side of the rectangle
 	addi $sp, $sp, -20 		# stack receives 5 items
 	sw $t0, 16($sp)			# x
 	sw $t1, 12($sp)			# y
@@ -782,7 +783,7 @@ draw_4:
 	addi $sp, $sp, 20       	# remove 5 items of the stack
 	
 	j draw2_x
-
+# chamada para funcao de desenho de ponto
 point_draw:
 	jal draw_pointfunc
 	
@@ -814,19 +815,19 @@ convert_negative:
 	
 	lw $t8, address			# Get bitmap address
 	addiu $t8, $t8, 0X00003f00	# add mask to offset new matrix's indexation
-
+# loop para a execucao da funcao convert_negative
 loop_negative:
 	jal  modify_rgb
   		
-  	sw   $t0, ($t8)    # escreve o novo pixel no display
-  	addi $t8, $t8, 4   # próximo pixel
-  	addi $s7, $s7, 1   # Incrementa o numero de colunas percorridas
+  	sw   $t0, ($t8)   		 # escreve o novo pixel no display
+  	addi $t8, $t8, 4   		 # próximo pixel
+  	addi $s7, $s7, 1   		 # Incrementa o numero de colunas percorridas
   	
-  	bne $s7, $t7, loop_negative   # Se o Y não chegou ao fim, continua
-  	jal line_up                   # Caso contrario, vai para a linha acima
-  	li  $s7, 0                    # O Y volta a posicao inicial
+  	bne $s7, $t7, loop_negative  	 # Se o Y não chegou ao fim, continua
+  	jal line_up                   	 # Caso contrario, vai para a linha acima
+  	li  $s7, 0                     	 # O Y volta a posicao inicial
 	j loop_negative
-
+# funcao para modificar os componentes RGB na funcao convert_negative
 modify_rgb:
  	## Pega componentes do ponto e negativa #
  	lw $t0, 0($t8)
@@ -855,7 +856,7 @@ modify_rgb:
  	add $t0, $t0, $t3
  	
  	jr $ra
- 	
+ # funcao auxiliar para deslocamento de cada pixel na imagem pra a funcao convert_negative	
 line_up:
 	sll $s7, $s7, 3      # Multiplica por 8
 	sub $t8, $t8, $s7    # Coloca o endereço na linha acima
@@ -864,7 +865,7 @@ line_up:
 	jr $ra     # Caso contrario, volta para o loop
 
 
-#-------------------------------------------------------------------------
+  #-------------------------------------------------------------------------
   # Função load_image: 
   #  Carrega uma imagem em formato RAW RGB para memoria.
   # Formato RAW: 
